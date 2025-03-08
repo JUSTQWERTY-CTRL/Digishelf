@@ -1,4 +1,4 @@
-
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -61,12 +61,13 @@
     <h1>My Digital Bookshelf</h1>
     <div id="bookshelf"></div>
     <div id="uploadForm">
-        <input type="file" id="bookUpload" accept=".pdf">
-        <input type="file" id="imageUpload" accept="image/*">
-        <button onclick="uploadBook()">Upload Book</button>
+        <input type="text" id="pdfUrl" placeholder="Enter PDF URL">
+        <input type="text" id="imageUrl" placeholder="Enter Image URL">
+        <input type="text" id="bookTitle" placeholder="Enter Book Title">
+        <button onclick="addBook()">Add Book</button>
     </div>
     <script>
-        let books = JSON.parse(localStorage.getItem("books")) || [];
+        let books = JSON.parse(localStorage.getItem("books")) ||;
 
         function saveBooks() {
             localStorage.setItem("books", JSON.stringify(books));
@@ -79,10 +80,10 @@
                 const bookDiv = document.createElement("div");
                 bookDiv.classList.add("book");
                 const bookLink = document.createElement("a");
-                bookLink.href = book.pdfData;
-                bookLink.download = book.title + ".pdf";
+                bookLink.href = book.pdfUrl;
+                bookLink.target = "_blank";
                 const coverImg = document.createElement("img");
-                coverImg.src = book.cover;
+                coverImg.src = book.coverUrl;
                 coverImg.alt = book.title + " Cover";
                 coverImg.onerror = function() {
                     console.error("Image load error for:", book.title);
@@ -98,48 +99,37 @@
 
         displayBooks();
 
-        function uploadBook() {
-            const fileInput = document.getElementById("bookUpload");
-            const imageInput = document.getElementById("imageUpload");
-            const file = fileInput.files[0];
-            const image = imageInput.files[0];
+        function addBook() {
+            const pdfUrl = document.getElementById("pdfUrl").value;
+            const imageUrl = document.getElementById("imageUrl").value;
+            const bookTitle = document.getElementById("bookTitle").value;
 
-            if (file && image) {
-                const pdfReader = new FileReader();
-                pdfReader.onload = function(pdfEvent) {
-                    const pdfData = pdfEvent.target.result;
-                    const imageReader = new FileReader();
-                    imageReader.onloadend = function() {
-                        if (imageReader.result) {
-                            const base64Image = imageReader.result;
-                            const newBook = {
-                                title: file.name.replace(/\.[^/.]+$/, ""),
-                                cover: base64Image,
-                                pdfData: pdfData,
-                            };
-                            books.push(newBook);
-                            saveBooks();
-                            displayBooks();
-                            fileInput.value = "";
-                            imageInput.value = "";
-                        } else {
-                            console.error("Image FileReader error");
-                        }
-                    };
-                    imageReader.onerror = function(error) {
-                        console.error("Image FileReader error: ", error);
-                    };
-                    imageReader.readAsDataURL(image);
+            if (!pdfUrl || !imageUrl || !bookTitle) {
+                alert("Please enter all URLs and the book title.");
+                return;
+            }
+
+            try {
+                const newBook = {
+                    title: bookTitle,
+                    coverUrl: imageUrl,
+                    pdfUrl: pdfUrl,
                 };
-                pdfReader.onerror = function(error) {
-                    console.error("PDF FileReader error: ", error);
-                };
-                pdfReader.readAsDataURL(file);
-            } else {
-                alert("Please select both a file and an image.");
+
+                books.push(newBook);
+                saveBooks();
+                displayBooks();
+
+                document.getElementById("pdfUrl").value = "";
+                document.getElementById("imageUrl").value = "";
+                document.getElementById("bookTitle").value = "";
+            } catch (error) {
+                console.error("Error saving book:", error);
+                alert("Error saving book.");
             }
         }
     </script>
 </body>
+</html>
 ---
 
