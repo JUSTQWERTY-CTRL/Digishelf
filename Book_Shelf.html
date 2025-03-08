@@ -1,4 +1,4 @@
-
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -6,12 +6,12 @@
     <title>My Digital Bookshelf</title>
     <style>
         body {
-            font-family: Brush Script MT, Brush Script Std, cursive;
+            font-family: 'Brush Script MT', 'Brush Script Std', cursive;
             font-size: 10px;
             margin: 20px;
             background-color: #ddc6c6;
         }
-        .h1 {
+        h1 {
             text-align: center;
         }
         #bookshelf {
@@ -67,9 +67,21 @@
     </div>
     <script>
         let books = JSON.parse(localStorage.getItem("books")) || [];
+
         function saveBooks() {
-            localStorage.setItem("books", JSON.stringify(books));
+            try {
+                localStorage.setItem("books", JSON.stringify(books));
+                console.log("Books saved successfully:", books); // Added console log
+            } catch (e) {
+                if (e instanceof DOMException && e.code === 22) {
+                    alert("Local storage is full. Please remove some books or use smaller files.");
+                } else {
+                    console.error("Error saving books:", e, books); // Added books to error log
+                    alert("An error occurred while saving books.");
+                }
+            }
         }
+
         function displayBooks() {
             const bookshelf = document.getElementById("bookshelf");
             bookshelf.innerHTML = "";
@@ -77,8 +89,8 @@
                 const bookDiv = document.createElement("div");
                 bookDiv.classList.add("book");
                 const bookLink = document.createElement("a");
-                bookLink.href = book.pdfData; // Use the PDF data directly
-                bookLink.download = book.title + ".pdf"; // Set download filename
+                bookLink.href = book.pdfData;
+                bookLink.download = book.title + ".pdf";
                 const coverImg = document.createElement("img");
                 coverImg.src = book.cover;
                 coverImg.alt = book.title + " Cover";
@@ -93,24 +105,27 @@
                 bookshelf.appendChild(bookDiv);
             });
         }
+
         displayBooks();
+
         function uploadBook() {
             const fileInput = document.getElementById("bookUpload");
             const imageInput = document.getElementById("imageUpload");
             const file = fileInput.files[0];
             const image = imageInput.files[0];
+
             if (file && image) {
-                const pdfReader = new FileReader(); // Read the PDF
+                const pdfReader = new FileReader();
                 pdfReader.onload = function(pdfEvent) {
                     const pdfData = pdfEvent.target.result;
-                    const imageReader = new FileReader(); // Read the image
+                    const imageReader = new FileReader();
                     imageReader.onloadend = function() {
                         if (imageReader.result) {
                             const base64Image = imageReader.result;
                             const newBook = {
-                                title: file.name.replace(/\.[^/.]+$/, ""), // Remove extension
+                                title: file.name.replace(/\.[^/.]+$/, ""),
                                 cover: base64Image,
-                                pdfData: pdfData, // Store the PDF data
+                                pdfData: pdfData,
                             };
                             books.push(newBook);
                             saveBooks();
@@ -121,15 +136,15 @@
                             console.error("Image FileReader error");
                         }
                     };
-                    imageReader.onerror = function(error){
-                      console.error("Image FileReader error: ", error);
-                    }
+                    imageReader.onerror = function(error) {
+                        console.error("Image FileReader error: ", error);
+                    };
                     imageReader.readAsDataURL(image);
                 };
-                pdfReader.onerror = function(error){
-                    console.error("PDF FileReader error: ", error)
-                }
-                pdfReader.readAsDataURL(file); // Read the PDF as a data URL
+                pdfReader.onerror = function(error) {
+                    console.error("PDF FileReader error: ", error);
+                };
+                pdfReader.readAsDataURL(file);
             } else {
                 alert("Please select both a file and an image.");
             }
