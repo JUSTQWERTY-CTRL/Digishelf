@@ -50,14 +50,27 @@
             white-space: nowrap;
             font-family: 'Dancing Script', cursive;
         }
+        #uploadForm {
+            margin-top: 20px;
+            text-align: center;
+        }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">
 </head>
 <body>
     <h1>My Digital Bookshelf</h1>
     <div id="bookshelf"></div>
+    <div id="uploadForm">
+        <input type="file" id="bookUpload" accept=".pdf">
+        <input type="file" id="imageUpload" accept="image/*">
+        <button onclick="uploadBook()">Upload Book</button>
+    </div>
     <script>
         let books = JSON.parse(localStorage.getItem("books")) || [];
+
+        function saveBooks() {
+            localStorage.setItem("books", JSON.stringify(books));
+        }
 
         function displayBooks() {
             const bookshelf = document.getElementById("bookshelf");
@@ -84,8 +97,49 @@
         }
 
         displayBooks();
+
+        function uploadBook() {
+            const fileInput = document.getElementById("bookUpload");
+            const imageInput = document.getElementById("imageUpload");
+            const file = fileInput.files[0];
+            const image = imageInput.files[0];
+
+            if (file && image) {
+                const pdfReader = new FileReader();
+                pdfReader.onload = function(pdfEvent) {
+                    const pdfData = pdfEvent.target.result;
+                    const imageReader = new FileReader();
+                    imageReader.onloadend = function() {
+                        if (imageReader.result) {
+                            const base64Image = imageReader.result;
+                            const newBook = {
+                                title: file.name.replace(/\.[^/.]+$/, ""),
+                                cover: base64Image,
+                                pdfData: pdfData,
+                            };
+                            books.push(newBook);
+                            saveBooks();
+                            displayBooks();
+                            fileInput.value = "";
+                            imageInput.value = "";
+                        } else {
+                            console.error("Image FileReader error");
+                        }
+                    };
+                    imageReader.onerror = function(error) {
+                        console.error("Image FileReader error: ", error);
+                    };
+                    imageReader.readAsDataURL(image);
+                };
+                pdfReader.onerror = function(error) {
+                    console.error("PDF FileReader error: ", error);
+                };
+                pdfReader.readAsDataURL(file);
+            } else {
+                alert("Please select both a file and an image.");
+            }
+        }
     </script>
 </body>
 </html>
----
 
