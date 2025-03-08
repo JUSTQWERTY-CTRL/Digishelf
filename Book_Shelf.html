@@ -5,58 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Digital Bookshelf</title>
     <style>
-        body {
-            font-family: Brush Script MT, Brush Script Std, cursive;
-            font-size: 10px;
-            margin: 20px;
-            background-color: #ddc6c6;
-        }
-        .h1 {
-            text-align: center;
-        }
-        #bookshelf {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 20px;
-            padding: 20px;
-        }
-        .book {
-            text-align: center;
-            background-color: #fff;
-            border: 1px solid #ddd;
-            padding: 10px;
-            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
-        }
-        .book img {
-            max-width: 100%;
-            height: auto;
-            display: block;
-            margin-bottom: 10px;
-        }
-        .book a {
-            text-decoration: none;
-            color: #333;
-        }
-        .book a:hover {
-            color: #007bff;
-        }
-        .book p {
-            font-size: 12px;
-            margin-top: 5px;
-            margin-bottom: 0;
-            line-height: 1.2;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            font-family: 'Dancing Script', cursive;
-        }
-        #uploadForm {
-            margin-top: 20px;
-            text-align: center;
-        }
-        #uploadStatus{
-          text-align: center;
-        }
+        /* ... (Your existing styles) ... */
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">
 </head>
@@ -68,12 +17,14 @@
         <input type="file" id="imageUpload" accept="image/*">
         <button onclick="uploadBook()">Upload Book</button>
     </div>
-    <div id = "uploadStatus"></div>
+    <div id="uploadStatus"></div>
     <script>
         let books = JSON.parse(localStorage.getItem("books")) || [];
+
         function saveBooks() {
             localStorage.setItem("books", JSON.stringify(books));
         }
+
         function displayBooks() {
             const bookshelf = document.getElementById("bookshelf");
             bookshelf.innerHTML = "";
@@ -82,7 +33,7 @@
                 bookDiv.classList.add("book");
                 const bookLink = document.createElement("a");
                 bookLink.href = book.pdfData;
-                bookLink.target = "_blank"; // Open in new tab
+                bookLink.target = "_blank";
                 const coverImg = document.createElement("img");
                 coverImg.src = book.cover;
                 coverImg.alt = book.title + " Cover";
@@ -97,54 +48,68 @@
                 bookshelf.appendChild(bookDiv);
             });
         }
+
         displayBooks();
+
         function uploadBook() {
             const fileInput = document.getElementById("bookUpload");
             const imageInput = document.getElementById("imageUpload");
             const file = fileInput.files[0];
             const image = imageInput.files[0];
             const statusDiv = document.getElementById("uploadStatus");
-            if (file && image) {
-              statusDiv.textContent = "Uploading...";
-                const pdfReader = new FileReader();
-                pdfReader.onload = function(pdfEvent) {
-                    const pdfData = pdfEvent.target.result;
-                    const imageReader = new FileReader();
-                    imageReader.onloadend = function() {
-                        if (imageReader.result) {
-                            const base64Image = imageReader.result;
-                            const newBook = {
-                                title: file.name.replace(/\.[^/.]+$/, ""),
-                                cover: base64Image,
-                                pdfData: pdfData,
-                            };
-                            books.push(newBook);
-                            saveBooks();
-                            displayBooks();
-                            fileInput.value = "";
-                            imageInput.value = "";
-                            statusDiv.textContent = "Upload successful!";
-                        } else {
-                            console.error("Image FileReader error");
-                            statusDiv.textContent = "Image upload failed.";
-                        }
-                    };
-                    imageReader.onerror = function(error) {
-                        console.error("Image FileReader error: ", error);
-                        statusDiv.textContent = "Image upload failed.";
-                    };
-                    imageReader.readAsDataURL(image);
-                };
-                pdfReader.onerror = function(error) {
-                    console.error("PDF FileReader error: ", error);
-                    statusDiv.textContent = "PDF upload failed.";
-                };
-                pdfReader.readAsDataURL(file);
-            } else {
-                statusDiv.textContent = "Please select both a file and an image.";
+
+            if (!file || !image) {
+                statusDiv.textContent = "Please select both a PDF and an image.";
+                return;
             }
+
+            statusDiv.textContent = "Processing files...";
+
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                const pdfData = e.target.result;
+
+                const imageReader = new FileReader();
+
+                imageReader.onload = function(imageEvent) {
+                    const imageData = imageEvent.target.result;
+
+                    try {
+                        const newBook = {
+                            title: file.name.replace(/\.[^/.]+$/, ""),
+                            cover: imageData,
+                            pdfData: pdfData,
+                        };
+
+                        books.push(newBook);
+                        saveBooks();
+                        displayBooks();
+
+                        fileInput.value = "";
+                        imageInput.value = "";
+                        statusDiv.textContent = "Book uploaded successfully!";
+                    } catch (error) {
+                        console.error("Error saving book:", error);
+                        statusDiv.textContent = "Error saving book.";
+                    }
+                };
+
+                imageReader.onerror = function(error) {
+                    console.error("Error reading image:", error);
+                    statusDiv.textContent = "Error reading image.";
+                };
+
+                imageReader.readAsDataURL(image);
+            };
+
+            reader.onerror = function(error) {
+                console.error("Error reading PDF:", error);
+                statusDiv.textContent = "Error reading PDF.";
+            };
+
+            reader.readAsDataURL(file);
         }
     </script>
 </body>
 </html>
-</html> 
