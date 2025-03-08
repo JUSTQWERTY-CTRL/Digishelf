@@ -54,6 +54,9 @@
             margin-top: 20px;
             text-align: center;
         }
+        #uploadStatus{
+          text-align: center;
+        }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">
 </head>
@@ -65,6 +68,7 @@
         <input type="file" id="imageUpload" accept="image/*">
         <button onclick="uploadBook()">Upload Book</button>
     </div>
+    <div id = "uploadStatus"></div>
     <script>
         let books = JSON.parse(localStorage.getItem("books")) || [];
         function saveBooks() {
@@ -77,8 +81,8 @@
                 const bookDiv = document.createElement("div");
                 bookDiv.classList.add("book");
                 const bookLink = document.createElement("a");
-                bookLink.href = book.pdfData; // Use the PDF data directly
-                bookLink.download = book.title + ".pdf"; // Set download filename
+                bookLink.href = book.pdfData;
+                bookLink.target = "_blank"; // Open in new tab
                 const coverImg = document.createElement("img");
                 coverImg.src = book.cover;
                 coverImg.alt = book.title + " Cover";
@@ -99,41 +103,48 @@
             const imageInput = document.getElementById("imageUpload");
             const file = fileInput.files[0];
             const image = imageInput.files[0];
+            const statusDiv = document.getElementById("uploadStatus");
             if (file && image) {
-                const pdfReader = new FileReader(); // Read the PDF
+              statusDiv.textContent = "Uploading...";
+                const pdfReader = new FileReader();
                 pdfReader.onload = function(pdfEvent) {
                     const pdfData = pdfEvent.target.result;
-                    const imageReader = new FileReader(); // Read the image
+                    const imageReader = new FileReader();
                     imageReader.onloadend = function() {
                         if (imageReader.result) {
                             const base64Image = imageReader.result;
                             const newBook = {
-                                title: file.name.replace(/\.[^/.]+$/, ""), // Remove extension
+                                title: file.name.replace(/\.[^/.]+$/, ""),
                                 cover: base64Image,
-                                pdfData: pdfData, // Store the PDF data
+                                pdfData: pdfData,
                             };
                             books.push(newBook);
                             saveBooks();
                             displayBooks();
                             fileInput.value = "";
                             imageInput.value = "";
+                            statusDiv.textContent = "Upload successful!";
                         } else {
                             console.error("Image FileReader error");
+                            statusDiv.textContent = "Image upload failed.";
                         }
                     };
-                    imageReader.onerror = function(error){
-                      console.error("Image FileReader error: ", error);
-                    }
+                    imageReader.onerror = function(error) {
+                        console.error("Image FileReader error: ", error);
+                        statusDiv.textContent = "Image upload failed.";
+                    };
                     imageReader.readAsDataURL(image);
                 };
-                pdfReader.onerror = function(error){
-                    console.error("PDF FileReader error: ", error)
-                }
-                pdfReader.readAsDataURL(file); // Read the PDF as a data URL
+                pdfReader.onerror = function(error) {
+                    console.error("PDF FileReader error: ", error);
+                    statusDiv.textContent = "PDF upload failed.";
+                };
+                pdfReader.readAsDataURL(file);
             } else {
-                alert("Please select both a file and an image.");
+                statusDiv.textContent = "Please select both a file and an image.";
             }
         }
     </script>
 </body>
+</html>
 </html> 
