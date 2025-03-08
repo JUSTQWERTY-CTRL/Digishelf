@@ -50,28 +50,14 @@
             white-space: nowrap;
             font-family: 'Dancing Script', cursive;
         }
-        #uploadForm {
-            margin-top: 20px;
-            text-align: center;
-        }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script&display=swap" rel="stylesheet">
 </head>
 <body>
     <h1>My Digital Bookshelf</h1>
     <div id="bookshelf"></div>
-    <div id="uploadForm">
-        <input type="text" id="pdfUrl" placeholder="Enter PDF URL">
-        <input type="text" id="imageUrl" placeholder="Enter Image URL">
-        <input type="text" id="bookTitle" placeholder="Enter Book Title">
-        <button onclick="addBook()">Add Book</button>
-    </div>
     <script>
-        let books = JSON.parse(localStorage.getItem("books")) ||;
-
-        function saveBooks() {
-            localStorage.setItem("books", JSON.stringify(books));
-        }
+        let books = JSON.parse(localStorage.getItem("books")) || [];
 
         function displayBooks() {
             const bookshelf = document.getElementById("bookshelf");
@@ -80,10 +66,10 @@
                 const bookDiv = document.createElement("div");
                 bookDiv.classList.add("book");
                 const bookLink = document.createElement("a");
-                bookLink.href = book.pdfUrl;
-                bookLink.target = "_blank";
+                bookLink.href = book.pdfData;
+                bookLink.download = book.title + ".pdf";
                 const coverImg = document.createElement("img");
-                coverImg.src = book.coverUrl;
+                coverImg.src = book.cover;
                 coverImg.alt = book.title + " Cover";
                 coverImg.onerror = function() {
                     console.error("Image load error for:", book.title);
@@ -98,36 +84,6 @@
         }
 
         displayBooks();
-
-        function addBook() {
-            const pdfUrl = document.getElementById("pdfUrl").value;
-            const imageUrl = document.getElementById("imageUrl").value;
-            const bookTitle = document.getElementById("bookTitle").value;
-
-            if (!pdfUrl || !imageUrl || !bookTitle) {
-                alert("Please enter all URLs and the book title.");
-                return;
-            }
-
-            try {
-                const newBook = {
-                    title: bookTitle,
-                    coverUrl: imageUrl,
-                    pdfUrl: pdfUrl,
-                };
-
-                books.push(newBook);
-                saveBooks();
-                displayBooks();
-
-                document.getElementById("pdfUrl").value = "";
-                document.getElementById("imageUrl").value = "";
-                document.getElementById("bookTitle").value = "";
-            } catch (error) {
-                console.error("Error saving book:", error);
-                alert("Error saving book.");
-            }
-        }
     </script>
 </body>
 </html>
