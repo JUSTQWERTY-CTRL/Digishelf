@@ -13,9 +13,10 @@
     <h1>My Digital Bookshelf</h1>
     <div id="bookshelf"></div>
     <div id="uploadForm">
-        <input type="file" id="bookUpload" accept=".pdf">
-        <input type="file" id="imageUpload" accept="image/*">
-        <button onclick="uploadBook()">Upload Book</button>
+        <input type="text" id="pdfUrl" placeholder="Enter PDF URL">
+        <input type="text" id="imageUrl" placeholder="Enter Image URL">
+        <input type="text" id="bookTitle" placeholder="Enter Book Title">
+        <button onclick="addBook()">Add Book</button>
     </div>
     <div id="uploadStatus"></div>
     <script>
@@ -32,10 +33,10 @@
                 const bookDiv = document.createElement("div");
                 bookDiv.classList.add("book");
                 const bookLink = document.createElement("a");
-                bookLink.href = book.pdfData;
+                bookLink.href = book.pdfUrl;
                 bookLink.target = "_blank";
                 const coverImg = document.createElement("img");
-                coverImg.src = book.cover;
+                coverImg.src = book.coverUrl;
                 coverImg.alt = book.title + " Cover";
                 coverImg.onerror = function() {
                     console.error("Image load error for:", book.title);
@@ -51,64 +52,36 @@
 
         displayBooks();
 
-        function uploadBook() {
-            const fileInput = document.getElementById("bookUpload");
-            const imageInput = document.getElementById("imageUpload");
-            const file = fileInput.files[0];
-            const image = imageInput.files[0];
+        function addBook() {
+            const pdfUrl = document.getElementById("pdfUrl").value;
+            const imageUrl = document.getElementById("imageUrl").value;
+            const bookTitle = document.getElementById("bookTitle").value;
             const statusDiv = document.getElementById("uploadStatus");
 
-            if (!file || !image) {
-                statusDiv.textContent = "Please select both a PDF and an image.";
+            if (!pdfUrl || !imageUrl || !bookTitle) {
+                statusDiv.textContent = "Please enter all URLs and the book title.";
                 return;
             }
 
-            statusDiv.textContent = "Processing files...";
-
-            const reader = new FileReader();
-
-            reader.onload = function(e) {
-                const pdfData = e.target.result;
-
-                const imageReader = new FileReader();
-
-                imageReader.onload = function(imageEvent) {
-                    const imageData = imageEvent.target.result;
-
-                    try {
-                        const newBook = {
-                            title: file.name.replace(/\.[^/.]+$/, ""),
-                            cover: imageData,
-                            pdfData: pdfData,
-                        };
-
-                        books.push(newBook);
-                        saveBooks();
-                        displayBooks();
-
-                        fileInput.value = "";
-                        imageInput.value = "";
-                        statusDiv.textContent = "Book uploaded successfully!";
-                    } catch (error) {
-                        console.error("Error saving book:", error);
-                        statusDiv.textContent = "Error saving book.";
-                    }
+            try {
+                const newBook = {
+                    title: bookTitle,
+                    coverUrl: imageUrl,
+                    pdfUrl: pdfUrl,
                 };
 
-                imageReader.onerror = function(error) {
-                    console.error("Error reading image:", error);
-                    statusDiv.textContent = "Error reading image.";
-                };
+                books.push(newBook);
+                saveBooks();
+                displayBooks();
 
-                imageReader.readAsDataURL(image);
-            };
-
-            reader.onerror = function(error) {
-                console.error("Error reading PDF:", error);
-                statusDiv.textContent = "Error reading PDF.";
-            };
-
-            reader.readAsDataURL(file);
+                document.getElementById("pdfUrl").value = "";
+                document.getElementById("imageUrl").value = "";
+                document.getElementById("bookTitle").value = "";
+                statusDiv.textContent = "Book added successfully!";
+            } catch (error) {
+                console.error("Error saving book:", error);
+                statusDiv.textContent = "Error saving book.";
+            }
         }
     </script>
 </body>
