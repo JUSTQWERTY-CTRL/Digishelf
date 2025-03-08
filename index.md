@@ -71,11 +71,12 @@
         function saveBooks() {
             try {
                 localStorage.setItem("books", JSON.stringify(books));
+                console.log("Books saved successfully:", JSON.parse(localStorage.getItem("books")));
             } catch (e) {
                 if (e instanceof DOMException && e.code === 22) {
                     alert("Local storage is full. Please remove some books or use smaller files.");
                 } else {
-                    console.error("Error saving books:", e);
+                    console.error("Error saving books:", e, books);
                     alert("An error occurred while saving books.");
                 }
             }
